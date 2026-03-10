@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>图床管理后台</title>
+    <link id="dynamic-favicon" rel="icon" href="data:;base64,iVBORw0KGgo=">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="/files/admin.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+</head>
+<body>
+
+<div id="login-wrapper">
+    <div class="login-container">
+        <div id="login-logo-area" style="display: flex; justify-content: center; align-items: center; margin-bottom: 20px;">
+            <img id="login-site-logo" src="" style="display: none; height: 47px; width: auto; margin-right: 10px;">
+            <h1 id="login-site-name" style="margin: 0; font-size: 24px; color: #333; display: none;"></h1>
+        </div>
+        <div class="form-group">
+            <input type="text" id="username" class="form-control" placeholder="请输入用户名" required>
+        </div>
+        <div class="form-group">
+            <input type="password" id="password" class="form-control" placeholder="请输入密码" required>
+        </div>
+        <button onclick="login()" class="xyrj-primary xyrj-login">登 录</button>
+        <div class="login-footer-link">
+            <a href="/">&larr; 返回到图库首页</a>
+        </div>
+    </div>
+    <div style="text-align:center;color: #686a69ba;font-size:13px;margin: 38px 16px 38px 16px;">
+        这是一个基于 Cloudflare 搭建的完全免费图库！
+    </div>
+</div>
+
+<div id="admin-container" class="admin-container hidden">
+    <div class="admin-mobile-header">
+        <div class="mobile-logo">
+            <img id="mobile-logo-img" src="">
+            <span id="mobile-logo-text"></span>
+        </div>
+        <button id="mobile-menu-toggle"><i class="fas fa-bars"></i></button>
+    </div>
+    <div class="admin-overlay"></div>
+    <div class="admin-sidebar">
+        <div class="sidebar-header">
+            <a href="#">夏雨图库</a>
+        </div>
+        <ul class="nav">
+            <li class="active" id="nav-images" onclick="switchTab('images')">
+                <a><i class="fas fa-fw fa-image"></i> 图片管理</a>
+                <ul id="category-submenu" style="list-style: none; padding-left: 20px; display: none;"></ul>
+            </li>
+            <li id="nav-categories" onclick="switchTab('categories')">
+                <a><i class="fas fa-fw fa-sitemap"></i> 分类设置</a>
+            </li>
+            <li id="nav-settings" onclick="switchTab('settings')">
+                <a><i class="fas fa-fw fa-cog"></i> 系统设置</a>
+            </li>
+            <li style="margin-top: 20px;" onclick="logout()">
+                <a><i class="fas fa-fw fa-sign-out-alt"></i> 退出登录</a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="admin-content">
+        <div class="tab-content">
+            
+            <div id="tab-images" class="container-fluid">
+                <h3>图片管理 
+                    <a href="/" target="_blank" class="btn btn-default btn-sm pull-right">查看前台</a>
+                    <span class="pull-right" style="font-size: 13px; font-weight: normal; margin-right: 15px; margin-top: 5px; color: #666;">
+                        <span id="stats-images"></span>
+                        <span id="stats-categories" style="margin-left: 15px;"></span>
+                    </span>
+                </h3>
+                
+                <div class="upload-area" id="drop-zone">
+                    <p style="font-size: 16px; color: #666; margin-bottom: 15px;">
+                        <i class="fas fa-cloud-upload-alt fa-2x"></i><br>
+                        支持拖拽上传或点击下方按钮
+                    </p>
+                    <div style="margin-bottom: 15px;">
+                        <label>存储节点：</label>
+                        <select id="set_storage_provider" onchange="quickSaveStorage()" class="form-control" style="display: inline-block; width: 200px;">
+						    <option value="r2">Cloudflare R2 (国内直连)</option>
+                            <option value="tg">Telegram (免费无限)</option>
+                        </select>
+
+                        <label style="margin-left: 15px;">上传分类：</label>
+                        <select id="upload_category" class="form-control" style="display: inline-block; width: 150px;">
+                            <option value="0">默认分类</option>
+                        </select>
+
+                        <label style="margin-left: 15px;">图片标题：</label>
+                        <input type="text" id="upload_title" class="form-control" placeholder="选填，前端展示标题" style="display: inline-block; width: 150px;">
+                    </div>
+                        
+                    <input type="file" id="fileInput" accept="image/*" multiple style="display:none;">
+                    <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">选择图片</button>
+                    <div id="uploadStatus" style="margin-top: 15px; font-weight: bold;"></div>
+                </div>
+
+                <div id="edit-modal" style="display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%); background:#fff; padding:20px; border-radius:8px; box-shadow:0 4px 15px rgba(0,0,0,0.2); z-index:1001; width:300px;">
+                    <h4 style="margin-top:0;">编辑图片 <span id="edit-id" class="hidden"></span></h4>
+                    <div class="form-group">
+                        <label>文件名</label>
+                        <input type="text" id="edit-filename" class="form-control input-sm">
+                    </div>
+                    <div class="form-group">
+                        <label>图片标题</label>
+                        <input type="text" id="edit-title" class="form-control input-sm" placeholder="前端展示的标题">
+                    </div>
+                    <div class="form-group">
+                        <label>分类</label>
+                        <select id="edit-category" class="form-control input-sm"></select>
+                    </div>
+                    <div class="form-group">
+                        <label>存储转移</label>
+                        <select id="edit-storage" class="form-control input-sm">
+                            <option value="none">不转移</option>
+                            <option value="tg2r2">转存到 R2 (原TG)</option>
+                            <option value="r22tg">转存到 TG (原R2)</option>
+                        </select>
+                    </div>
+                    <div style="text-align:right;">
+                        <button class="btn btn-default btn-sm" onclick="document.getElementById('edit-modal').style.display='none'">取消</button>
+                        <button class="btn btn-primary btn-sm" onclick="saveEdit()">保存</button>
+                    </div>
+                </div>
+
+                <div style="border-top: 1px solid #eee; padding-top: 20px;">
+                    <div style="display: flex; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                        <button onclick="loadImages()" class="btn btn-default btn-sm" style="margin-bottom: 0;"><i class="fas fa-sync"></i> 刷新</button>
+                        <input type="text" id="admin-search" class="form-control input-sm" placeholder="搜索文件名或标题..." style="width: 150px; margin-bottom: 0;" onkeyup="filterAdminImages()">
+                        
+                        <div style="border-left: 1px solid #ccc; height: 20px; margin: 0 5px;"></div>
+                        
+                        <label style="margin: 0; display: flex; align-items: center; cursor: pointer; font-weight: normal;"><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)" style="margin-right: 5px;">全选</label>
+                        <button onclick="batchDelete()" class="btn btn-danger btn-sm" style="margin-bottom: 0;"><i class="fas fa-trash"></i> 批量删除</button>
+                        
+                        <div style="border-left: 1px solid #ccc; height: 20px; margin: 0 5px;"></div>
+                        
+                        <select id="batchEditCategory" class="form-control input-sm" style="width: 120px; display: inline-block;"></select>
+                        <button onclick="batchEdit()" class="btn btn-warning btn-sm" style="margin-bottom: 0;"><i class="fas fa-exchange-alt"></i> 批量移分类</button>
+                    <div style="border-left: 1px solid #ccc; height: 20px; margin: 0 5px;"></div>
+                        
+                        <select id="batchTransferStorage" class="form-control input-sm" style="width: 130px; display: inline-block;">
+                            <option value="none">不转移</option>
+                            <option value="tg2r2">转存到 R2 (原TG)</option>
+                            <option value="r22tg">转存到 TG (原R2)</option>
+                        </select>
+                        <button onclick="batchTransfer(this)" class="btn btn-info btn-sm" style="margin-bottom: 0;"><i class="fas fa-server"></i> 批量转移</button>
+                    </div>
+                    <div class="gallery-grid" id="gallery"></div>
+                    <div id="admin-pagination-container" class="admin-pagination" style="display: none;"></div>
+                </div>
+            </div>
+
+            <div id="tab-categories" class="container-fluid hidden">
+                <h3>分类设置</h3>
+                <div class="alert alert-info" style="font-size: 13px;">
+                    <b>说明:</b> 输入名称并点击添加。
+                </div>
+                <div class="form-group" style="max-width: 500px;">
+                    <div class="input-group">
+                        <select id="new-category-parent" class="form-control" style="width: 35%; border-right: 0;"><option value="0">作为顶级分类</option></select>
+                        <input type="text" id="new-category-name" class="form-control" style="width: 65%;" placeholder="输入新分类名称...">
+                        <span class="input-group-btn">
+                            <button class="btn btn-success" type="button" onclick="addCategory()">
+                                <i class="fas fa-plus"></i> 添加
+                            </button>
+                        </span>
+                    </div>
+                </div>
+                <table class="table table-striped" style="max-width: 500px;">
+                    <thead><tr><th style="width: 40px;"></th><th>分类名称</th><th style="width: 60px;">显示</th><th style="width: 110px;">操作</th></tr></thead>
+                    <tbody id="category-list"></tbody>
+                </table>
+            </div>
+
+            <div id="tab-settings" class="container-fluid hidden">
+                <h3>网站设置</h3>
+                <ul class="nav nav-tabs" style="margin-bottom: 20px;">
+                    <li class="active"><a href="javascript:void(0)" onclick="switchSettingsTab('basic')">基础设置</a></li>
+                    <li><a href="javascript:void(0)" onclick="switchSettingsTab('data')">数据导入/导出</a></li>
+                </ul>
+                <div class="tab-content">
+                    <div id="basic-settings" style="display: block;">
+                <form class="form-horizontal" style="max-width: 800px;">
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">TG Bot Token</label>
+                        <div class="col-sm-9"><input type="text" id="set_tg_bot_token" class="form-control"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">TG Chat ID</label>
+                        <div class="col-sm-9"><input type="text" id="set_tg_chat_id" class="form-control"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">外部 API Key</label>
+                        <div class="col-sm-9"><input type="text" id="set_api_key" class="form-control"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">后台账号</label>
+                        <div class="col-sm-9"><input type="text" id="set_admin_user" class="form-control"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">后台密码</label>
+                        <div class="col-sm-9"><input type="text" id="set_admin_pass" class="form-control" placeholder="留空则不修改"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">Favicon 图标</label>
+                        <div class="col-sm-9"><input type="text" id="set_site_favicon" class="form-control"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">网站名称</label>
+                        <div class="col-sm-9" style="display: flex; gap: 10px;">
+                            <input type="text" id="set_site_name" class="form-control" placeholder="用于登录页显示">
+                            <select id="set_show_site_name" class="form-control" style="width: 100px;">
+                                <option value="on">显示</option>
+                                <option value="off">隐藏</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">Logo 图片地址</label>
+                        <div class="col-sm-9" style="display: flex; gap: 10px;">
+                            <input type="text" id="set_site_logo" class="form-control" placeholder="图片 URL 地址">
+                            <select id="set_show_site_logo" class="form-control" style="width: 100px;">
+                                <option value="on">显示</option>
+                                <option value="off">隐藏</option>
+                            </select>
+                        </div>
+                    </div>
+					<div class="form-group">
+                        <label class="col-sm-3 control-label">移动端侧滑栏顶部图</label>
+                        <div class="col-sm-9"><input type="text" id="set_mobile_sidebar_image" class="form-control" placeholder="图片 URL 地址，留空则显示分类文字"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">页底版权区(支持HTML)</label>
+                        <div class="col-sm-9">
+                            <textarea id="set_site_footer_1" class="form-control" rows="2" placeholder="支持插入各类HTML标签代码"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">页底联系方式区(支持HTML)</label>
+                        <div class="col-sm-9">
+                            <textarea id="set_site_footer_2" class="form-control" rows="2" placeholder="可自行修改为其他文字或链接"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-offset-3 col-sm-9">
+                            <a tabindex="0" role="button" class="btn btn-primary" onclick="saveSettings()">
+                                <i class="fas fa-save"></i> 保存网站设置
+                            </a>
+                        </div>
+                    </div>
+                </form>
+                
+                    </div> <div id="data-management" style="display: none; padding: 20px 0;">
+                        <div class="alert alert-warning" style="max-width: 600px;">
+                            <i class="fas fa-exclamation-triangle"></i> <b>警告：</b> 导入数据将以覆盖(Replace)的形式执行，拥有相同ID的数据会被直接覆盖，强烈建议在导入前先【导出备份】当前数据！
+                        </div>
+                        <div style="margin-bottom: 30px;">
+                            <h4>导出数据</h4>
+                            <p style="color: #666; font-size: 13px;">勾选你需要导出的内容，后端将动态打包为您生成 JSON 文件(注：是图片信息，不是图片本身)。</p>
+                            <div style="margin-bottom: 15px;">
+                                <label style="margin-right: 15px; font-weight: normal; cursor: pointer;">
+                                    <input type="checkbox" id="export-basic"> 基础设置(含分类)
+                                </label>
+                                <label style="margin-right: 15px; font-weight: normal; cursor: pointer;">
+                                    <input type="checkbox" id="export-r2"> <i class="fab fa-cloudflare" style="color:#f48120;"></i> R2图片
+                                </label>
+                                <label style="font-weight: normal; cursor: pointer;">
+                                    <input type="checkbox" id="export-tg"> <i class="fab fa-telegram-plane" style="color:#0088cc;"></i> TG图片
+                                </label>
+                            </div>
+                            <button class="btn btn-success" onclick="exportData()"><i class="fas fa-file-export"></i> 导出选中数据</button>
+                        </div>
+                        <hr style="max-width: 600px; margin-left: 0;">
+                        <div>
+                            <h4>导入数据</h4>
+                            <input type="file" id="import-file" accept=".json" class="form-control" style="display:inline-block; width: 300px; margin-right: 10px; margin-bottom:10px;">
+                            <br>
+                            <button class="btn btn-danger" onclick="importData()"><i class="fas fa-file-import"></i> 导入数据文件</button>
+                        </div>
+                    </div> </div> </div>
+
+        </div>
+		<div style="text-align: center; margin-top: 40px; padding: 20px 0; color: #888; font-size: 13px;">
+            夏雨图床系统 v1.0.0
+        </div>
+    </div>
+</div>
+<div id="custom-fail-alert" class="custom-fail-overlay">
+    <div class="custom-fail-modal">
+        <div class="custom-fail-header"><i class="fas fa-exclamation-circle" style="margin-right:8px;"></i> 以下图片上传失败</div>
+        <div id="custom-fail-list" class="custom-fail-body"></div>
+        <div class="custom-fail-footer">
+            <button class="custom-fail-btn" onclick="document.getElementById('custom-fail-alert').style.display='none'">我知道了</button>
+        </div>
+    </div>
+</div>
+
+<script src="/files/admin.js"></script>
+
+</body>
+</html>

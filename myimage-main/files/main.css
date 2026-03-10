@@ -1,0 +1,97 @@
+/* 移动端页头适配样式 */
+.mobile-btn { display: none; font-size: 20px; cursor: pointer; color: #555; }
+@media (max-width: 768px) {
+    .header-container { position: relative; justify-content: center !important; height: 50px !important; }
+    .header-left { justify-content: center !important; width: 100%; }
+    .logo-area { margin-right: 0 !important; }
+    .logo-area img { height: 39px !important; }
+    #site-name { font-size: 18px !important; }
+    
+    .mobile-btn { display: block; position: absolute; top: 50%; transform: translateY(-50%); z-index: 10; }
+    .mobile-menu-toggle { left: 12px; }
+    .mobile-search-toggle { right: 12px; }
+    
+    /* 分类菜单变为左侧滑出 */
+    #public-nav-categories {
+        display: block !important; position: fixed; top: 0; left: 0; height: 100%; width: 80%; max-width: 320px; background: #fff; z-index: 1001; transform: translateX(-100%); transition: transform 0.3s ease-in-out; padding-top: 0; overflow-y: auto; box-shadow: none; box-sizing: border-box;
+    }
+    #public-nav-categories.show { transform: translateX(0); box-shadow: 2px 0 8px rgba(0,0,0,0.1); }
+    
+    /* 博客同款：一级菜单与全局 A 标签排版 */
+    .pc-cat-item, .has-dropdown { display: block !important; position: relative !important; }
+    #public-nav-categories a { margin: 0 !important; padding: 0 20px !important; line-height: 45px !important; border-bottom: 1px solid #f0f0f0; width: 100% !important; display: flex !important; align-items: center; justify-content: space-between; text-align: left; box-sizing: border-box; color: #555 !important; font-weight: normal !important; text-decoration: none !important; }
+
+    /* 博客同款：子菜单默认隐藏，带有独立下拉开关 */
+    .cat-dropdown { display: none !important; position: static !important; opacity: 1 !important; visibility: visible !important; transform: none !important; box-shadow: none !important; background-color: #f8f9fa !important; width: 100%; padding: 0 !important; border-top: none; }
+    .cat-dropdown.open { display: block !important; }
+    #public-nav-categories .cat-dropdown a { padding-left: 40px !important; border-bottom: 1px solid #e9ecef !important; }
+    .cat-dropdown-sub { background-color: #f1f3f5 !important; }
+    #public-nav-categories .cat-dropdown-sub a { padding-left: 60px !important; }
+    
+    /* 博客同款：右侧独立的折叠箭头按钮 */
+    .submenu-toggle { display: flex; align-items: center; justify-content: center; width: 50px; height: 45px; position: absolute; right: 0; top: 0; cursor: pointer; color: #888; border-left: 1px solid #f0f0f0; }
+    .submenu-toggle i { font-size: 18px; transition: transform 0.3s; }
+    .submenu-toggle.active i { transform: rotate(90deg); }
+    .arrow-container { display: none !important; }
+    
+    /* 顶部栏和登录按钮适配博客样式 */
+    .mobile-nav-header { display: flex; width: 100%; justify-content: center; align-items: center; padding: 10px 20px; border-bottom: 1px solid #f0f0f0; background-color: #f8f9fa; box-sizing: border-box; position: relative; }
+    .mobile-nav-header span { font-size: 15px; font-weight: bold; color: #555; }
+    .mobile-nav-header i { font-size: 24px; color: #888; cursor: pointer; position: absolute; right: 20px; }
+    .mobile-login-btn { border-bottom: none !important; color: #555 !important; justify-content: center !important; gap: 8px; }
+    /* 遮罩层 */
+    #mobile-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 998; transition: opacity 0.3s; }
+    #mobile-overlay.show { display: block; }       
+    /* 搜索框变下拉 */
+    .header-right {
+        display: none !important; position: absolute; top: 52px; width: 100vw; background: #fff; box-shadow: 0 4px 8px rgba(0,0,0,0.1); padding: 15px 20px; box-sizing: border-box; justify-content: center !important; z-index: 1000;
+    }
+    .header-right.show { display: flex !important; }
+    .header-right > div { width: 100%; display: flex; }
+    #public-search-input { flex-grow: 1; width: auto !important; }
+}
+/* 新增 overflow-y: scroll 强行常驻滚动条，防止图片加载后出现滚动条挤压页面导致水平位移 */
+body { font-family: system-ui, sans-serif; background: #fafafa; margin: 0; padding: 0; overflow-y: scroll; }
+header { background: #fff; border-bottom: 1px solid #eaeaea; padding: 0px 0px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 999;}
+h1 { margin: 0; font-size: 24px; color: #333; }
+.header-container { display: flex; justify-content: space-between; align-items: center; height: 60px; max-width: 1200px; margin: 0 auto; position: relative;}
+/* 新增 min-height 预留出屏幕高度的骨架空间，防止由于数据异步加载导致页脚疯狂上下跳动 */
+.container { max-width: 1200px; margin: 30px auto; padding: 0 20px; min-height: 55vh; }
+.masonry { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 20px; }
+@media (max-width: 400px) { .masonry { grid-template-columns: repeat(auto-fill, minmax(calc(50% - 10px), 1fr)); } }
+@media (max-width: 229px) { .masonry { grid-template-columns: 1fr; } }
+.item { background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: transform 0.2s; }
+.item:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+.item a { display: block; position: relative; padding-top: 100%; background-color: #f9f9f9; }
+.item img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; object-fit: scale-down; }
+.footer { text-align: center; padding: 40px; color: #888; font-size: 14px; }
+@media (max-width: 768px) { .footer * { font-size: 13px !important; } }
+.footer a { text-decoration: none; color: #bbb; }
+.footer a:hover { color: #409EFF; } /* 可选：鼠标放上去变成蓝色 */
+.pagination { display: flex; justify-content: center; align-items: center; gap: 6px; margin: 40px 0 10px; flex-wrap: wrap; }
+.pagination button { padding: 6px 14px; border: 1px solid #f0f0f0; background: #f4f4f4; color: #666; cursor: pointer; border-radius: 2px; font-size: 14px; transition: all 0.2s; outline: none; }
+.pagination button:hover:not(:disabled) { background: #e8e8e8; }
+.pagination button.active { background: #409EFF; color: #fff; border-color: #409EFF; }
+.pagination button:disabled { color: #bbb; cursor: not-allowed; background: #fafafa; }
+.pagination .page-info { padding: 6px 12px; color: #888; font-size: 14px; background: #f4f4f4; border: 1px solid #f0f0f0; border-radius: 2px; }
+@media (min-width: 769px) { .mobile-nav-header, .mobile-login-btn, .submenu-toggle { display: none !important; } }
+#public-nav-categories a { font-size: 14px !important; transition: color 0.2s ease !important; }
+#public-nav-categories a:hover { color: #409EFF !important; }
+@media (min-width: 769px) {
+    #public-nav-categories {
+        flex-wrap: wrap !important;
+        overflow: visible !important;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        align-items: center;
+    }
+    #public-nav-categories::-webkit-scrollbar { display: none; }
+    .pc-cat-item { flex-shrink: 0; white-space: nowrap; position: relative; line-height: 40px; }
+    .cat-dropdown { display: flex; opacity: 0; visibility: hidden; transform: translateY(-10px); transition: all 0.3s ease; position: absolute; top: 100%; left: 0; min-width: 100%; background-color: #fff; box-shadow: 0 1px 3px rgba(26,26,26,.1); border-radius: 0; padding: 0; z-index: 1000; flex-direction: column; }
+    .cat-dropdown-sub { top: 0; left: 100%; margin-left: 0; border-top: none; transform: translateX(-10px); }
+    .has-dropdown:hover > .cat-dropdown { opacity: 1; visibility: visible; transform: translateY(0); }
+    .cat-dropdown a { line-height: 38px; width: 100%; padding: 0 8px; box-sizing: border-box; color: #555; text-decoration: none; white-space: nowrap; display: flex; justify-content: space-between; align-items: center; }
+    .cat-dropdown a:hover { background-color: transparent; color: #409EFF !important; }
+    .arrow-container { display: inline-block; margin-left: 6px; font-weight: 300; font-size: 12px; opacity: 0.8; transition: transform 0.3s ease; }
+    .pc-cat-item:hover > a > .arrow-container { transform: rotate(-90deg); }
+}
